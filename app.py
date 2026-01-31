@@ -5,11 +5,17 @@ import numpy as np
 import os
 from io import BytesIO
 from PIL import Image
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+import torch
+torch.set_num_threads(1)
+
 
 app = Flask(__name__)
 
 # Load your trained model
 model = YOLO("best.pt")
+model.fuse()
 
 UPLOAD_FOLDER = "uploads"
 RESULT_FOLDER = "results"
@@ -37,7 +43,7 @@ def detect():
     img_np = np.array(image)
 
     # Run detection
-    results = model(img_np, conf=0.4)
+    results = model(img_np, conf=0.4, device="cpu", half=False)
 
     # Draw bounding boxes
     annotated_img = results[0].plot()
